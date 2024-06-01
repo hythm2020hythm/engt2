@@ -1,0 +1,566 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #score-counter {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            background-color: #333;
+            border-bottom-right-radius: 10px;
+            color: white;
+            z-index: 999;
+        }
+
+        #quiz-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 60px 20px 20px; /* تم تعديل ال padding ليضمن عدم تغطية الصورة */
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            position: relative; /* تمت إضافة position: relative; للسماح لـ #score-counter بالتحكم فيه */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: white;
+            background-color: #2196F3;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0c0c0c;
+        }
+
+        #timer {
+            margin-bottom: 10px;
+        }
+
+        #result-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-text {
+            margin-bottom: 10px;
+        }
+
+        .correct {
+            background-color: green;
+            color: white;
+        }
+
+        .incorrect {
+            background-color: red;
+            color: white;
+        }
+
+        /* CSS for displaying images to fit the screen */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="score-counter">Score: <span id="score">0</span></div>
+
+    <div id="quiz-container">
+        <img id="question-image" src="" alt="Question Image">
+        <div id="choices"></div>
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="timer"></p>
+    </div>
+
+    <div id="result-container">
+        <h2>Quiz Result</h2>
+        <p class="result-text" id="result"></p>
+        <div id="correct-answers"></div>
+        <button id="retryBtn" style="display: none;" onclick="retryQuiz()">Retry Quiz</button>
+    </div>
+
+    <script>
+        var currentQuestion = 0;
+        var score = 0;
+        var timeLeft = 1800; // تحديد عدد الثواني
+        var timerInterval;
+
+        var quizData = [
+
+
+        
+        
+        
+
+{
+"question": ".... Is the process of using symbols (letters of the alphabet punctuation and spaces) to communicate thoughts and ideas in readable form.",
+"choices": ["Listening.", "Reading.", "Speaking.", "Writing."],
+"correctAnswer": "Writing."
+},
+{
+"question": "The ability to translate letters into sounds ",
+"choices": ["Monologue.", "Dialogue.", "Evaluate.", "Decoding."],
+"correctAnswer": "Decoding."
+},
+{
+"question": ".... is to know about details and segments. It concentrates on forms and structure.",
+"choices": ["Top down strategy.", "Clustering.", "Bottom-up strategy.", "Selective listening"],
+"correctAnswer": "Bottom-up strategy."
+},
+{
+"question": ".... Is making an oral summary of the information presented in a listening task.",
+"choices": ["Summarization.", "Elaboration.", "Inference.", "Predicting."],
+"correctAnswer": "Summarization."
+},
+    {
+"question": "..... is the information that learners receive from their teacher about their performance.",
+"choices": ["Test", "Rubric", "Feedback", "Holistic grading"],
+"correctAnswer": "Feedback"
+},
+{
+"question": ".... Present the content of the lesson and the strategy that will help the students learn the content and/or carry out a task.",
+"choices": ["Preparation", "Practice", "Aids", "Presentation"],
+"correctAnswer": "Presentation"
+},
+{
+"question": "The ability to break information into parts to understand it better....",
+"choices": ["Application", "Synthesis", "Analysis", "Comprehension"],
+"correctAnswer": "Analysis"
+},
+{
+"question": "A facial or body movement that communicates meaning, such as smile, a frown, a shrug, a shake or nod of the head....",
+"choices": ["Eliciting", "gestures", "Language games", "Personalize"],
+"correctAnswer": "gestures"
+},
+{
+"question": "It’s a technique of encouraging somebody for putting his best possible efforts for achieving the pre-set goal....",
+"choices": ["Motivation", "Feedback", "Environment", "Warming up"],
+"correctAnswer": "Motivation"
+},
+                 {
+                question: "ما هو اختصار نظرية KWL",
+                choices: ["Knowledge, What, Learn", "Know, What, Learn", "Know, What, Learned", "Knowledge, What, Learned"],
+                correctAnswer: "Knowledge, What, Learned"
+            },
+                  {
+
+
+
+
+
+
+
+"question": ".يجب عدم تشويه أهداف الثورة وتحويل الحرية الى فوضى",
+"choices": ["We should not distort the goals of the revolution and turn freedom into chaos.", "We should distort the goals of the revolution and turn freedom into chaos.", "We should not distort the goals of the revolution and turn freedom into free."],
+"correctAnswer": "We should not distort the goals of the revolution and turn freedom into chaos."
+
+}, {
+
+
+
+"question": ".يجب على شبابنا دفع عجلة التنمية من أجل مستقبل أفضل",
+"choices": ["Our youth should pushs the acceleration of development for a better future.", "Our youth should push the acceleration of development for a better future.", "Our youth should push the acceleration for development for a better future."],
+"correctAnswer": "Our youth should push the acceleration of development for a better future."
+}, {
+
+
+
+"question": "ان اعادة النظر في اتفاقية السلام اصبحت ضرورة ملحة الان من اجل حماية ارض الوطن",
+"choices": ["Examining the terms of the peace agreement is now an urgent necessity to protect the homeland.", "Re-examining the terms of the peace agreement is now an urgent necessity to protect the homeland.", "Re-examining the turns of the peace agreement is now an urgent necessity to protect the homeland."],
+"correctAnswer": "Re-examining the turns of the peace agreement is now an urgent necessity to protect the homeland."
+}, {
+
+
+
+"question": "يجب ان نتحلى بالصبر والصمود فى مواجهة مشاكلنا الاقتصادية الحاليه",
+"choices": ["We must be characterized by patience and steadfastness in the face of our current economic problems.", "We must characterized by patience and steadfastness in the face of our current economic problems.", "We must be characterized by patience and steadfastness in the hand of our current economic problems."],
+"correctAnswer": "We must be characterized by patience and steadfastness in the face of our current economic problems."
+}, {
+
+
+
+"question": "لقد اصبحت السياحة العمود الفقري لتطوير الاقتصاد المصري",
+"choices": ["Tourism has become the backs bone of the development of the Egyptian economy.", "Tourism has become the backbone of the development of the Egypt economy.", "Tourism has become the backbone of the development of the Egyptian economy."],
+"correctAnswer": "Tourism has become the backbone of the development of the Egyptian economy."
+}, {
+
+
+
+"question": ". تهدف قوانين المرور الجديدة الى تحقيق أنسياب المرور والحد من حوادث السيارات",
+"choices": ["the  new traﬃc law aim to achieve the ﬂow of traﬃc and reduce car accidents.", "the  new traﬃc laws aim to achieve the ﬂew of traﬃc and reduce car accidents.", "the  new traﬃc laws aim to achieve the ﬂow of traﬃc and reduce car accidents."],
+"correctAnswer": "the  new traﬃc laws aim to achieve the ﬂow of traﬃc and reduce car accidents."
+}, {
+
+
+
+"question": ". تبذل الحكومة ما فى وسعها لرفع مستوى معيشة الافراد ",
+"choices": ["the  government do its best to raise the individuals’ standard of living.", "the  government does its best to raise the individuals’ standard of living.", "the  government does its best for raise the individuals’ standard of living."],
+"correctAnswer": "the  government does its best to raise the individuals’ standard of living."
+}, {
+
+
+
+"question": ".ان استصلاح الصحراء وتحويلها لاراضى زراعية ضرورة لتحقيق الاكتفاء الغذائى ",
+"choices": ["the  desert reclamation and turning them into agricultural lands is a necessity to achieve food suﬃciency.", "the  desert acclamation and turning them into agricultural lands is a necessity to achieve food suﬃciency.", "the  desert reclamation and turning them into cultural lands is a necessity to achieve food suﬃciency."],
+"correctAnswer": "the  desert reclamation and turning them into agricultural lands is a necessity to achieve food suﬃciency."
+}, {
+
+
+
+"question": " .إن االبرنامج القومى للتعليم يهدف الى إعداد جيل قادر على مواجهة المستقبل وخلق مجتمع منتج",
+"choices": ["the  international program for education aims to prepare a generation which is able to face the future and create a productive ", "the  national program for education aims to reject a generation which is able to face the future and create a productive society.", "the  national program for education aims to prepare a generation which is able to face the future and create a productive society."],
+"correctAnswer": "the  national program for education aims to prepare a generation which is able to face the future and create a productive society."
+}, {
+
+
+
+"question": "ان كل دولة فى العالم لها الحق في استخدام الطاقة الذرية للاغراض السلمية",
+"choices": ["Each country in the world has the right to use atomic energy for peaceful purposes.", "Every country in the world has the right to use atomic energy for peaceful purposes.", "Every country in the world have the right to use atomic energy for peaceful purposes."],
+"correctAnswer": "Every country in the world has the right to use atomic energy for peaceful purposes."
+
+}, {
+
+
+"question": "تعقد مسابقات اوائل الطلبة فى جميع المواد علي مستوى الجمهوريه وسيمنح الطلاب الفائزون منحة دراسية بالخارج",
+"choices": ["Top form contests are held in all subjects all over the Republic and the winner students will be give a scholarship abroad.", "Top form contests is held in all subjects all over the Republic and the winner students will be given a scholarship abroad.", "Top form contests are held in all subjects all over the Republic and the winner students will be given a scholarship "],
+"correctAnswer": "Top form contests are held in all subjects all over the Republic and the winner students will be given a scholarship "
+
+}, {
+
+
+
+"question": "لقد اصبحت ضرورة ملحة البدء فى انشاء عاصمة جديده بدلا من القاهرة",
+"choices": ["It has became an urgent need to begin setting up a new capital instead of Cairo.", "It have become an urgent need to begin setting up a new capital instead of Cairo.", "It has become an urgent need to begin setting up a new capital instead of Cairo."],
+"correctAnswer": "It has become an urgent need to begin setting up a new capital instead of Cairo." 
+}, {
+
+
+
+"question": "تهدف مؤتمرات السلام الي وضع نهاية للحروب وتحقيق السلام العالمي",
+"choices": ["Peace conferences aims to put an end to wars and achieve the world peace.", "Peace conferences aim for put an end to wars and achieve the world peace.", "Peace conferences aim to put an end to wars and achieve the world peace."],
+"correctAnswer": "Peace conferences aim to put an end to wars and achieve the world peace." 
+}, {
+
+
+
+"question": "يجب ان لا نقف مكتوفي الايدي ونلقي بالعبء علي الحكومة وحدها فى حل المشكلات",
+"choices": ["We should stand idly and put the burden on the government alone to solve problems.", "We should stand idly and put the burden on the government lone to solve problems.", "We shouldn’t stand idly and put the burden on the government alone to solve problems."],
+"correctAnswer": "We shouldn’t stand idly and put the burden on the government alone to solve problems." 
+}, {
+
+
+
+"question": "تحثنا الاديان السماوية على التسامح والاخوه ونبذ العنف",
+"choices": ["Heavenly religions urges us for tolerance, brotherhood and non-violence.", "Heavenly religions urge us for tolerance, brotherhood and violence.", "Heavenly religions urge us for tolerance, brotherhood and non-violence."],
+"correctAnswer": "Heavenly religions urge us for tolerance, brotherhood and non-violence." 
+}, {
+
+
+
+"question": "يجب ان نرشد استهلاكنا من المياه وإلا سوف نواجه مشكلات خطيرة فى المستقبل القريب",
+"choices": ["We must rationalize our consumption of water, or we will face serious problems in the near future.", "We must not rationalize our consumption of water, or we will face serious problems in the near future.", "We must rationalize our consumption of water, or we will not face serious problems in the near future."],
+"correctAnswer": "We must rationalize our consumption of water, or we will face serious problems in the near future."
+}, {
+
+
+
+"question": ". ينبغى أن نشجع الشباب على ممارسة الرياضة لمساعدتهم على قضاء وقت فراغهم",
+"choices": ["We should discourage young people to practice sports to help them spend their free time.", "We should not encourage young people to practice sports to help them spend their free time.", "We should encourage young people to practice sports to help them spend their free time."],
+"correctAnswer": "We should encourage young people to practice sports to help them spend their free time." 
+}, {
+
+
+
+"question": "يجب على الشرطه محاربة جرائم الاعتداء والاغتصاب والاختطاف والتزوير والاحتيال",
+"choices": ["the police must ﬁght crimes of assault, rape, kidnapping, forgery and fraud.", "the police must not ﬁght crimes of assault, rape, kidnapping, forgery and fraud.", "the police must ﬁght crime of assault, rape, kidnapping, forgery and fraud."],
+"correctAnswer": "the police must ﬁght crimes of assault, rape, kidnapping, forgery and fraud." 
+}, {
+
+
+
+"question": "تعد المشكلة السكانية أخطر المشاكل التى  تواجه بلدنا فى الوقت الحالى",
+"choices": ["the population problem are the most serious problem facing our country at this time.", "the pulsations problem is the most serious problem facing our country at this time.", "the population problem is the most serious problem facing our country at this time."],
+"correctAnswer": "the population problem is the most serious problem facing our country at this time."
+
+}, {
+
+
+"question": " الشعب المصري باسره يرفض الارهاب والعنف وقتل الابرياء",
+"choices": ["the Egyptian people as a whole reject terrorism, violence and the killing of innocent people.", "the Egyptian people as a whole rejects terrorism, violence and the killing of innocent people.", "the Egyptian people as a whole rejects tourism, violence and the killing of innocent people."],
+"correctAnswer": "the Egyptian people as a whole rejects terrorism, violence and the killing of innocent people."
+
+},
+              {
+        question: "What is the main focus of the Grammar Translation Method?",
+        choices: ["Speaking skills", "Grammar and translation", "Listening skills"],
+        correctAnswer: "Grammar and translation"
+    },
+    {
+        question: "In which educational context did the Grammar Translation Method originate?",
+        choices: ["Language immersion programs", "Military training", "Teaching classical languages"],
+        correctAnswer: "Teaching classical languages"
+    },
+    {
+        question: "Which language skills are often neglected in the Grammar Translation Method?",
+        choices: ["Reading and writing", "Listening and speaking", "All language skills are equally emphasized"],
+        correctAnswer: "Listening and speaking"
+    },
+    {
+        question: "What is the role of the native language in the Grammar Translation Method?",
+        choices: ["It is rarely used", "It is the main language of instruction", "It is not allowed"],
+        correctAnswer: "It is the main language of instruction"
+    },
+    {
+        question: "What type of texts are commonly used in the Grammar Translation Method?",
+        choices: ["Everyday conversational texts", "Authentic materials", "Literary and classical texts"],
+        correctAnswer: "Literary and classical texts"
+    },
+    {
+        question: "What is the goal of grammar instruction in this method?",
+        choices: ["To facilitate communication", "To develop reading skills", "To achieve grammatical accuracy"],
+        correctAnswer: "To achieve grammatical accuracy"
+    },
+    {
+        question: "Which learning style does the Grammar Translation Method align with?",
+        choices: ["Visual and auditory learning", "Kinesthetic learning", "Rote memorization"],
+        correctAnswer: "Rote memorization"
+    },
+    {
+        question: "What is the role of translation exercises in this method?",
+        choices: ["They are avoided", "They are essential for learning", "They are optional"],
+        correctAnswer: "They are essential for learning"
+    },
+    {
+        question: "How are vocabulary and grammar typically presented in the Grammar Translation Method?",
+        choices: ["Inductively", "Deductively", "Experimentally"],
+        correctAnswer: "Deductively"
+    },
+    {
+        question: "What is the teacher's primary role in the Grammar Translation Method?",
+        choices: ["Facilitator", "Guide", "Authority figure"],
+        correctAnswer: "Authority figure"
+    },
+    {
+        question: "Which linguistic theory aligns with the Grammar Translation Method?",
+        choices: ["Behaviorism", "Cognitivism", "Structuralism"],
+        correctAnswer: "Structuralism"
+    },
+    {
+        question: "What is the criticism often directed at the Grammar Translation Method?",
+        choices: ["It neglects cultural aspects", "It focuses too much on communication", "It lacks grammar instruction"],
+        correctAnswer: "It neglects cultural aspects"
+    },
+    {
+        question: "How are errors typically handled in the Grammar Translation Method?",
+        choices: ["Ignored", "Corrected immediately", "Used as opportunities for learning"],
+        correctAnswer: "Corrected immediately"
+    },
+    {
+        question: "In what historical period did the Grammar Translation Method become prominent?",
+        choices: ["20th century", "19th century", "18th century"],
+        correctAnswer: "19th century"
+    },
+    {
+        question: "What is the view on the use of the target language in the Grammar Translation Method?",
+        choices: ["Encouraged from the beginning", "Avoided in early stages", "Used exclusively"],
+        correctAnswer: "Avoided in early stages"
+    },
+    {
+        question: "Which language acquisition theory contrasts with the Grammar Translation Method?",
+        choices: ["The Natural Approach", "Input Hypothesis", "Interaction Hypothesis"],
+        correctAnswer: "The Natural Approach"
+    },
+    {
+        question: "What is the primary goal of the Grammar Translation Method?",
+        choices: ["Fluency in communication", "Cultural understanding", "Mastery of grammar and translation"],
+        correctAnswer: "Mastery of grammar and translation"
+    },
+    {
+        question: "How does the Grammar Translation Method view language as a skill?",
+        choices: ["Integral to communication", "Separate from communication", "Not emphasized"],
+        correctAnswer: "Separate from communication"
+    },
+    {
+        question: "What type of assessments are common in the Grammar Translation Method?",
+        choices: ["Oral presentations", "Authentic performance tasks", "Written exams"],
+        correctAnswer: "Written exams"
+    },
+    
+
+          
+
+        ];
+
+        // قم بترتيب الأسئلة بشكل عشوائي
+        shuffleArray(quizData);
+
+        function shuffleArray(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function loadQuestion() {
+            var currentQuiz = quizData[currentQuestion];
+
+            var questionImageElement = document.getElementById('question-image');
+            var choicesElement = document.getElementById('choices');
+
+            if (currentQuiz.imageSrc) {
+                questionImageElement.src = currentQuiz.imageSrc; // تعيين مصدر الصورة
+                questionImageElement.style.display = 'block'; // عرض الصورة
+            } else {
+                questionImageElement.style.display = 'none'; // إخفاء الصورة إذا لم تكن متاحة
+            }
+
+            choicesElement.innerHTML = '';
+
+            // عرض السؤال كنص عادي إذا لم يكن هناك صورة
+            if (!currentQuiz.imageSrc) {
+                choicesElement.innerHTML += '<p>' + currentQuiz.question + '</p>';
+            }
+
+            for (var i = 0; i < currentQuiz.choices.length; i++) {
+                var choice = currentQuiz.choices[i];
+                choicesElement.innerHTML += '<label><input type="radio" name="choice" value="' + choice + '"> ' + choice + '</label>';
+            }
+
+            startTimer(); // بدء الموقت عند تحميل كل سؤال
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(function () {
+                document.getElementById('timer').innerHTML = 'Time Left: ' + timeLeft + 's';
+
+                if (timeLeft === 0) {
+                    clearInterval(timerInterval);
+                    alert('Time is up!'); // عرض رسالة انتهاء الوقت
+                    showResult(); // عرض النتيجة النهائية عند انتهاء الوقت
+                } else {
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            var selectedOption = document.querySelector('input[name="choice"]:checked');
+            if (!selectedOption) {
+                alert('Please select an answer.');
+                return;
+            }
+
+            var userAnswer = selectedOption.value;
+            var currentQuiz = quizData[currentQuestion];
+
+            var choicesLabels = document.querySelectorAll('label');
+
+            for (var i = 0; i < choicesLabels.length; i++) {
+                if (currentQuiz.correctAnswer === currentQuiz.choices[i]) {
+                    choicesLabels[i].classList.add('correct');
+                } else {
+                    choicesLabels[i].classList.add('incorrect');
+                }
+            }
+
+            if (userAnswer === currentQuiz.correctAnswer) {
+                score++;
+                document.getElementById('score').textContent = score;
+            }
+
+            clearInterval(timerInterval); // قبل التحقق من الإجابة، قم بإيقاف الموقت
+
+            currentQuestion++;
+
+            if (currentQuestion < quizData.length) {
+                setTimeout(function () {
+                    loadQuestion();
+                    resetColors();
+                }, 3000);
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            var resultElement = document.getElementById('result');
+            var correctAnswersElement = document.getElementById('correct-answers');
+
+            resultElement.innerHTML = 'Your Score: ' + score + ' out of ' + quizData.length;
+
+            correctAnswersElement.innerHTML = '<h3>Correct Answers:</h3>';
+            for (var i = 0; i < quizData.length; i++) {
+                var q = quizData[i];
+                var imgSrc = q.imageSrc;
+                var imgElement = '<img src="' + imgSrc + '" alt="Question Image">';
+                correctAnswersElement.innerHTML += imgElement + '<strong>Q: ' + q.question + '</strong><br>A: ' + q.correctAnswer + '<br>';
+            }
+
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('retryBtn').style.display = 'block';
+        }
+
+        function resetColors() {
+            var choicesLabels = document.querySelectorAll('label');
+            for (var i = 0; i < choicesLabels.length; i++) {
+                choicesLabels[i].classList.remove('correct', 'incorrect'); // إزالة الأنماط المضافة سابقًا
+            }
+        }
+
+        function retryQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 1800; // إعادة تعيين الوقت للقيمة الأصلية
+
+            // قم بترتيب الأسئلة بشكل عشوائي عند إعادة المحاولة
+            shuffleArray(quizData);
+
+            document.getElementById('score').textContent = score; // تحديث قيمة العداد إلى الصفر
+            loadQuestion();
+            resetColors();
+
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('retryBtn').style.display = 'none';
+        }
+
+        loadQuestion();
+    </script>
+
+</body>
+
+</html>
